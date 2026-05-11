@@ -1,0 +1,14 @@
+<Soundfont Name="CustomSoundfont" Index="38"
+           Medium="MEDIUM_CART" CachePolicy="CACHE_LOAD_TEMPORARY"
+           SampleBank="$(BUILD_DIR)/assets/audio/samplebanks/CustomMusic.xml">
+    <Envelopes>
+        <Envelope Name="Env_hold" Release="127">
+            <Point Delay="1" Arg="32700"/>
+            <Point Delay="32700" Arg="32700"/>
+        </Envelope>
+    </Envelopes>
+    <Samples>
+    </Samples>
+    <Instruments>
+    </Instruments>
+</Soundfont>

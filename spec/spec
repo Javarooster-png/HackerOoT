@@ -178,6 +178,9 @@ beginseg
 #if OOT_VERSION >= PAL_1_0
     include "$(BUILD_DIR)/assets/audio/audiobank_padding.o"
 #endif
+    /* BEGIN_CUSTOM_AUDIOBANK */
+    include "$(BUILD_DIR)/assets/audio/soundfonts/CustomSoundfont.o"
+    /* END_CUSTOM_AUDIOBANK */
 endseg
 
 beginseg
@@ -292,6 +295,8 @@ beginseg
     include "$(BUILD_DIR)/assets/audio/sequences/seq_107.o"
     include "$(BUILD_DIR)/assets/audio/sequences/seq_108.o"
     include "$(BUILD_DIR)/assets/audio/sequences/seq_109.prg.o"
+    /* BEGIN_CUSTOM_AUDIOSEQ */
+    /* END_CUSTOM_AUDIOSEQ */
 endseg
 
 beginseg
@@ -303,6 +308,9 @@ beginseg
     include "$(BUILD_DIR)/assets/audio/samplebanks/SampleBank_4.o"
     include "$(BUILD_DIR)/assets/audio/samplebanks/SampleBank_5.o"
     include "$(BUILD_DIR)/assets/audio/samplebanks/SampleBank_6.o"
+    /* BEGIN_CUSTOM_AUDIOTABLE */
+    include "$(BUILD_DIR)/assets/audio/samplebanks/CustomMusic.o"
+    /* END_CUSTOM_AUDIOTABLE */
 endseg
 
 #if OOT_NTSC

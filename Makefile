@@ -31,7 +31,7 @@ COMPILER ?= gcc
 #   gc-eu-mq       GameCube Europe/PAL Master Quest
 #   gc-jp-ce       GameCube Japan (Collector's Edition disc)
 #   ique-cn        iQue Player (Simplified Chinese)
-VERSION ?= ntsc-1.2
+VERSION ?= gc-eu-mq-dbg
 # Number of threads to extract and compress with.
 N_THREADS ?= $(shell nproc)
 # If DEBUG_OBJECTS is 1, produce additional debugging files such as objdump output or raw binaries for assets
@@ -428,9 +428,12 @@ else
   SEQUENCE_DIRS :=
 endif
 
-SAMPLE_FILES         := $(foreach dir,$(SAMPLE_DIRS),$(wildcard $(dir)/*.wav))
-SAMPLE_EXTRACT_FILES := $(foreach dir,$(SAMPLE_EXTRACT_DIRS),$(wildcard $(dir)/*.wav))
-AIFC_FILES           := $(foreach f,$(SAMPLE_FILES),$(BUILD_DIR)/$(f:.wav=.aifc)) $(foreach f,$(SAMPLE_EXTRACT_FILES:.wav=.aifc),$(f:$(EXTRACTED_DIR)/%=$(BUILD_DIR)/%))
+SAMPLE_FILES             := $(foreach dir,$(SAMPLE_DIRS),$(wildcard $(dir)/*.wav))
+SAMPLE_EXTRACT_FILES     := $(foreach dir,$(SAMPLE_EXTRACT_DIRS),$(wildcard $(dir)/*.wav))
+SAMPLE_MP3_FILES         := $(foreach dir,$(SAMPLE_DIRS),$(wildcard $(dir)/*.mp3))
+SAMPLE_MP3_EXTRACT_FILES := $(foreach dir,$(SAMPLE_EXTRACT_DIRS),$(wildcard $(dir)/*.mp3))
+AIFC_FILES               := $(foreach f,$(SAMPLE_FILES),$(BUILD_DIR)/$(f:.wav=.aifc)) $(foreach f,$(SAMPLE_EXTRACT_FILES:.wav=.aifc),$(f:$(EXTRACTED_DIR)/%=$(BUILD_DIR)/%)) \
+                            $(foreach f,$(SAMPLE_MP3_FILES),$(BUILD_DIR)/$(f:.mp3=.aifc)) $(foreach f,$(SAMPLE_MP3_EXTRACT_FILES:.mp3=.aifc),$(f:$(EXTRACTED_DIR)/%=$(BUILD_DIR)/%))
 
 SAMPLEBANK_XMLS         := $(foreach dir,$(SAMPLEBANK_DIRS),$(wildcard $(dir)/*.xml))
 SAMPLEBANK_EXTRACT_XMLS := $(foreach dir,$(SAMPLEBANK_EXTRACT_DIRS),$(wildcard $(dir)/*.xml))
@@ -445,12 +448,57 @@ SOUNDFONT_O_FILES      := $(foreach f,$(SOUNDFONT_BUILD_XMLS),$(f:.xml=.o))
 SOUNDFONT_HEADERS      := $(foreach f,$(SOUNDFONT_BUILD_XMLS),$(f:.xml=.h))
 SOUNDFONT_DEP_FILES    := $(foreach f,$(SOUNDFONT_O_FILES),$(f:.o=.c.d))
 
-SEQUENCE_FILES         := $(foreach dir,$(SEQUENCE_DIRS),$(wildcard $(dir)/*.seq))
+SEQUENCE_FILES         := $(filter-out assets/audio/sequences/seq_custom_%.seq,\
+                          $(foreach dir,$(SEQUENCE_DIRS),$(wildcard $(dir)/*.seq)))
 SEQUENCE_EXTRACT_FILES := $(foreach dir,$(SEQUENCE_EXTRACT_DIRS),$(wildcard $(dir)/*.seq))
 SEQUENCE_O_FILES       := $(foreach f,$(SEQUENCE_FILES),$(BUILD_DIR)/$(f:.seq=.o)) $(foreach f,$(SEQUENCE_EXTRACT_FILES:.seq=.o),$(f:$(EXTRACTED_DIR)/%=$(BUILD_DIR)/%))
 SEQUENCE_DEP_FILES     := $(foreach f,$(SEQUENCE_O_FILES),$(f:.o=.d))
 
 SEQUENCE_TABLE := include/tables/sequence_table.h
+
+# --- Custom music pipeline ---
+CUSTOM_MUSIC_DIR       := assets/audio/samples/CustomMusic
+CUSTOM_SAMPLEBANK_NAME := CustomMusic
+CUSTOM_SOUNDFONT_NAME  := CustomSoundfont
+CUSTOM_MUSIC_MP3S      := $(wildcard $(CUSTOM_MUSIC_DIR)/*.mp3)
+CUSTOM_MUSIC_NAMES     := $(notdir $(basename $(CUSTOM_MUSIC_MP3S)))
+CUSTOM_SEQ_O_FILES     := $(foreach n,$(CUSTOM_MUSIC_NAMES),$(BUILD_DIR)/assets/audio/sequences/seq_custom_$(n).o)
+SEQUENCE_O_FILES       += $(CUSTOM_SEQ_O_FILES)
+
+$(BUILD_DIR)/.custom_audio.stamp: tools/audio/gen_custom_audio.py $(BUILD_DIR)/.custom_music_names
+	$(call print,Generating custom audio files)
+	$(V)$(PYTHON) tools/audio/gen_custom_audio.py
+	$(V)touch $@
+
+# soundfont_table.h, samplebank_table.h, spec, and custom seq objects wait for
+# the generator (order-only: don't rebuild just because the stamp is newer).
+$(BUILD_DIR)/assets/audio/soundfont_table.h \
+$(BUILD_DIR)/assets/audio/samplebank_table.h \
+$(BUILD_DIR)/spec \
+$(CUSTOM_SEQ_O_FILES): | $(BUILD_DIR)/.custom_audio.stamp
+
+# The stamp writes these source-tree files as side-effects. Declare them as
+# Make targets depending on the stamp so that on a fresh build Make knows HOW
+# to satisfy them as prerequisites.
+$(foreach n,$(CUSTOM_MUSIC_NAMES),assets/audio/sequences/seq_custom_$(n).seq) \
+assets/audio/samplebanks/$(CUSTOM_SAMPLEBANK_NAME).xml \
+assets/audio/soundfonts/$(CUSTOM_SOUNDFONT_NAME).xml: $(BUILD_DIR)/.custom_audio.stamp
+	@:
+
+# Build-dir XMLs are rebuilt whenever the stamp is newer (regular dep, not
+# order-only) so they stay in sync after gen_custom_audio.py changes them.
+$(BUILD_DIR)/assets/audio/samplebanks/$(CUSTOM_SAMPLEBANK_NAME).xml \
+$(BUILD_DIR)/assets/audio/soundfonts/$(CUSTOM_SOUNDFONT_NAME).xml: $(BUILD_DIR)/.custom_audio.stamp
+
+# The custom .seq files include CustomSoundfont.h. Add it as an explicit
+# order-only dep since it's not in SOUNDFONT_HEADERS at parse time.
+$(CUSTOM_SEQ_O_FILES): | $(BUILD_DIR)/assets/audio/soundfonts/$(CUSTOM_SOUNDFONT_NAME).h
+
+# SFC needs the build-dir samplebank XML to resolve sample indices when it
+# generates the soundfont header.
+$(BUILD_DIR)/assets/audio/soundfonts/$(CUSTOM_SOUNDFONT_NAME).h: \
+	| $(BUILD_DIR)/assets/audio/samplebanks/$(CUSTOM_SAMPLEBANK_NAME).xml
+# ---
 
 # create extracted directory
 $(shell mkdir -p $(EXTRACTED_DIR))
@@ -570,6 +618,10 @@ all: rom
 
 rom:
 	$(call print_no_args,Building the rom...)
+	$(V)mkdir -p $(BUILD_DIR)
+	$(V)printf '%s\n' $(CUSTOM_MUSIC_NAMES) | diff -q - $(BUILD_DIR)/.custom_music_names > /dev/null 2>&1 \
+		|| { printf '%s\n' $(CUSTOM_MUSIC_NAMES) > $(BUILD_DIR)/.custom_music_names && \
+		     $(PYTHON) tools/audio/gen_custom_audio.py; }
 	$(V)$(MAKE) $(ROM)
 
 compress:
@@ -878,6 +930,22 @@ ifeq ($(AUDIO_BUILD_DEBUG),1)
 	@(cmp $(<D)/aifc/$(<F:.wav=.aifc) $@ && echo "$(<F) OK") || (mkdir -p NONMATCHINGS/$(<D) && cp $(<D)/aifc/$(<F:.wav=.aifc) NONMATCHINGS/$(<D)/$(<F:.wav=.aifc))
 endif
 
+$(BUILD_DIR)/assets/audio/samples/%.aifc: assets/audio/samples/%.mp3
+	$(call print_two_args,Building Sample:,$<,$@)
+	$(V)mkdir -p $(@D)
+	$(V)$(PYTHON) tools/audio/mp3_to_pcm_wav.py $< $(@:.aifc=.wav) 32000
+	$(V)$(PYTHON) tools/audio/add_wav_loop.py $(@:.aifc=.wav)
+	$(V)$(SAMPLECONV) vadpcm $(@:.aifc=.wav) $@
+	$(V)$(RM) $(@:.aifc=.wav)
+
+$(BUILD_DIR)/assets/audio/samples/%.aifc: $(EXTRACTED_DIR)/assets/audio/samples/%.mp3
+	$(call print_two_args,Building Sample:,$<,$@)
+	$(V)mkdir -p $(@D)
+	$(V)$(PYTHON) tools/audio/mp3_to_pcm_wav.py $< $(@:.aifc=.wav) 32000
+	$(V)$(PYTHON) tools/audio/add_wav_loop.py $(@:.aifc=.wav)
+	$(V)$(SAMPLECONV) vadpcm $(@:.aifc=.wav) $@
+	$(V)$(RM) $(@:.aifc=.wav)
+
 # then assemble the samplebanks...
 
 .PRECIOUS: $(BUILD_DIR)/assets/audio/samplebanks/%.xml
@@ -963,7 +1031,7 @@ $(BUILD_DIR)/assets/audio/soundfont_table.h: $(SOUNDFONT_BUILD_XMLS) $(SAMPLEBAN
 
 SEQ_ORDER_DEFS := -DDEFINE_SEQUENCE_PTR\(name,seqId,_2,_3,_4\)=*\(name,seqId\) \
                   -DDEFINE_SEQUENCE\(name,seqId,_2,_3,_4\)=\(name,seqId\)
-$(BUILD_DIR)/assets/audio/sequence_order.in: $(SEQUENCE_TABLE)
+$(BUILD_DIR)/assets/audio/sequence_order.in: $(SEQUENCE_TABLE) include/tables/custom_sequence_table.h | $(BUILD_DIR)/.custom_audio.stamp
 	$(V)$(CPP) $(CPPFLAGS) $< $(SEQ_ORDER_DEFS) -o $@
 
 $(BUILD_DIR)/assets/audio/sequence_font_table.s: $(BUILD_DIR)/assets/audio/sequence_order.in $(SEQUENCE_O_FILES)
@@ -973,7 +1041,7 @@ $(BUILD_DIR)/assets/audio/sequence_font_table.s: $(BUILD_DIR)/assets/audio/seque
 
 $(BUILD_DIR)/src/audio/tables/samplebank_table.o: src/audio/tables/samplebank_table.c $(BUILD_DIR)/assets/audio/samplebank_table.h
 $(BUILD_DIR)/src/audio/tables/soundfont_table.o: src/audio/tables/soundfont_table.c $(BUILD_DIR)/assets/audio/soundfont_table.h $(SOUNDFONT_HEADERS)
-$(BUILD_DIR)/src/audio/tables/sequence_table.o: src/audio/tables/sequence_table.c $(SEQUENCE_TABLE)
+$(BUILD_DIR)/src/audio/tables/sequence_table.o: src/audio/tables/sequence_table.c $(SEQUENCE_TABLE) include/tables/custom_sequence_table.h | $(BUILD_DIR)/.custom_audio.stamp
 
 $(BUILD_DIR)/src/audio/tables/sequence_table.o: CFLAGS += -I include/tables
 
