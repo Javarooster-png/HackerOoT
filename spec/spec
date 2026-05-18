@@ -1136,6 +1136,13 @@ beginseg
     include "$(BUILD_DIR)/src/overlays/actors/ovl_En_Test/ovl_En_Test_reloc.o"
 endseg
 
+beginseg
+    name "ovl_Bg_Weather"
+    compress
+    include "$(BUILD_DIR)/src/overlays/actors/ovl_Bg_Weather/z_bg_weather.o"
+    include "$(BUILD_DIR)/src/overlays/actors/ovl_Bg_Weather/ovl_Bg_Weather_reloc.o"
+endseg
+
 // Overlays for most actors and effects are reordered between versions. On N64 and iQue,
 // the overlays are in some arbitrary order, while on GameCube they are sorted alphabetically.
 #if !PLATFORM_GC
