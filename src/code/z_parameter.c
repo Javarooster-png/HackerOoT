@@ -19,6 +19,7 @@
 #include "versions.h"
 #include "widescreen.h"
 #include "audio.h"
+#include "config.h"
 #include "lifemeter.h"
 #include "horse.h"
 #include "ocarina.h"
@@ -3632,6 +3633,9 @@ void Interface_Draw(PlayState* play) {
     static s16 magicArrowEffectsB[] = { 0, 255, 100 };
     static s16 timerDigitLeftPos[] = { 16, 25, 34, 42, 51 };
     static s16 sDigitWidths[] = { 9, 9, 8, 9, 9 };
+#if ENABLE_HUD_CLOCK
+    static s16 hudClockDigitLeftPos[] = { 0, 9, 18, 26, 35 };
+#endif
     // unused, most likely colors
     static s16 D_80125B1C[][3] = {
         { 0, 150, 0 }, { 100, 255, 0 }, { 255, 255, 255 }, { 0, 0, 0 }, { 255, 255, 255 },
@@ -3656,6 +3660,10 @@ void Interface_Draw(PlayState* play) {
     s16 svar4;
     s16 svar5;
     s16 timerId;
+#if ENABLE_HUD_CLOCK
+    s16 hudClockDigits[5];
+    s32 hudClockMinutes;
+#endif
 
     s16 rupeePosY = 0;
 #if IS_INV_EDITOR_ENABLED
@@ -3763,6 +3771,27 @@ void Interface_Draw(PlayState* play) {
                 Gfx_TextureI8(OVERLAY_DISP, ((u8*)gCounterDigit0Tex + (8 * 16 * interfaceCtx->counterDigits[svar2])), 8,
                               16, svar3, 206 - rupeePosY, 8, 16, 1 << 10, 1 << 10);
         }
+
+#if ENABLE_HUD_CLOCK
+        hudClockMinutes = (gSaveContext.save.dayTime * (24 * 60)) >> 16;
+        hudClockDigits[0] = (hudClockMinutes / 600) % 10;
+        hudClockDigits[1] = (hudClockMinutes / 60) % 10;
+        hudClockDigits[2] = 10; // digit 10 is used as ':' (colon)
+        hudClockDigits[3] = (hudClockMinutes / 10) % 6;
+        hudClockDigits[4] = hudClockMinutes % 10;
+
+        gDPPipeSync(OVERLAY_DISP++);
+        gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 255, 255, 255, interfaceCtx->magicAlpha);
+        gDPSetCombineLERP(OVERLAY_DISP++, 0, 0, 0, PRIMITIVE, TEXEL0, 0, PRIMITIVE, 0, 0, 0, 0, PRIMITIVE, TEXEL0, 0,
+                          PRIMITIVE, 0);
+
+        for (svar1 = 0; svar1 < ARRAY_COUNT(hudClockDigits); svar1++) {
+            OVERLAY_DISP =
+                Gfx_TextureI8(OVERLAY_DISP, ((u8*)gCounterDigit0Tex + (8 * 16 * hudClockDigits[svar1])), 8, 16,
+                              264 + hudClockDigitLeftPos[svar1], 206 - rupeePosY, sDigitWidths[svar1], 16, 1 << 10,
+                              1 << 10);
+        }
+#endif
 
         Magic_DrawMeter(play);
 

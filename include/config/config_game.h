@@ -41,6 +41,9 @@
  */
 #define ENABLE_FAST_TEXT false
 
+// Make moving-time scenes use a 24 real minute in-game day.
+#define ENABLE_24_MINUTE_DAY true
+
 /**
  * Splits Farore's Wind warp point across ages. One point for child Link, one point for adult Link.
  */

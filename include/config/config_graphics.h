@@ -40,6 +40,9 @@
 // Rupee counter icon changes color with wallet upgrades like in MM
 #define MM_WALLET_ICON_COLORS true
 
+// Draw the current in-game time on the HUD opposite the rupee counter
+#define ENABLE_HUD_CLOCK true
+
 /**
  * Applies the anti-aliasing filter for the background of the pause menu.
  * Note: this adds a significant delay when pausing.

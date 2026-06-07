@@ -370,6 +370,10 @@ BAD_RETURN(s32) Scene_CommandTimeSettings(PlayState* play, SceneCmd* cmd) {
             ((cmd->timeSettings.hour + (cmd->timeSettings.min / 60.0f)) * 60.0f) / ((f32)(24 * 60) / 0x10000);
     }
 
+    if (ENABLE_24_MINUTE_DAY && (timeSpeed != 0) && (timeSpeed != 0xFF)) {
+        timeSpeed = ENV_TIME_SPEED_24_MINUTES;
+    }
+
     if (timeSpeed != 0xFF) {
         play->envCtx.sceneTimeSpeed = timeSpeed;
     } else {

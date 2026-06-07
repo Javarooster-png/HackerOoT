@@ -25,6 +25,7 @@
 #include "versions.h"
 #include "z_lib.h"
 #include "audio.h"
+#include "config.h"
 #include "cutscene.h"
 #include "frame_advance.h"
 #include "environment.h"
@@ -989,7 +990,7 @@ void Environment_Update(PlayState* play, EnvironmentContext* envCtx, LightContex
             if (((msgCtx->msgLength == 0) && (msgCtx->msgMode == MSGMODE_NONE)) ||
                 (((void)0, gSaveContext.gameMode) == GAMEMODE_END_CREDITS)) {
 
-                if ((envCtx->changeSkyboxTimer == 0) && !FrameAdvance_IsEnabled(play) &&
+                if (((envCtx->changeSkyboxTimer == 0) || ENABLE_24_MINUTE_DAY) && !FrameAdvance_IsEnabled(play) &&
 
                     (play->transitionMode == TRANS_MODE_OFF || ((void)0, gSaveContext.gameMode) != GAMEMODE_NORMAL)) {
                     timeSpeedStep = Environment_GetTimeSpeedStep();
