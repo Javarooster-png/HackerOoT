@@ -21,6 +21,9 @@ struct View;
 #define NEXT_TIME_DAY_SET 0xFFFE
 #define NEXT_TIME_NIGHT_SET 0xFFFD
 
+// 24 real minutes per in-game day: 1 real second per in-game minute.
+#define ENV_TIME_SPEED_24_MINUTES 0xFE
+
 #define LIGHT_SETTING_MAX 31
 #define LIGHT_SETTING_OVERRIDE_NONE 0xFF
 

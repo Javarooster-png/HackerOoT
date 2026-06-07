@@ -66,7 +66,25 @@ u8 gSkyboxIsChanging = false;
 // how many units of time that pass every update
 u16 gTimeSpeed = 0;
 
+#define ENV_TIME_SPEED_24_MINUTES_Q16 149131
+
+static u32 s24MinutesTimeSpeedRemainder = 0;
+
 u16 sSunScreenDepth = GPACK_ZDZ(G_MAXFBZ, 0);
+
+static u16 Environment_GetTimeSpeedStep(void) {
+    u16 timeSpeedStep;
+
+    if (gTimeSpeed != ENV_TIME_SPEED_24_MINUTES) {
+        return gTimeSpeed;
+    }
+
+    // Q16 tick rate tuned for 1 real second per in-game minute at 20 FPS.
+    s24MinutesTimeSpeedRemainder += ENV_TIME_SPEED_24_MINUTES_Q16;
+    timeSpeedStep = s24MinutesTimeSpeedRemainder >> 16;
+    s24MinutesTimeSpeedRemainder &= 0xFFFF;
+    return timeSpeedStep;
+}
 
 typedef struct TimeBasedLightEntry {
     /* 0x00 */ u16 startTime;
@@ -926,6 +944,7 @@ void Environment_Update(PlayState* play, EnvironmentContext* envCtx, LightContex
     u16 i;
     u16 j;
     u16 time;
+    u16 timeSpeedStep;
     EnvLightSettings* lightSettingsList = play->envCtx.lightSettingsList;
     u8 blendRate;
 
@@ -973,11 +992,12 @@ void Environment_Update(PlayState* play, EnvironmentContext* envCtx, LightContex
                 if ((envCtx->changeSkyboxTimer == 0) && !FrameAdvance_IsEnabled(play) &&
 
                     (play->transitionMode == TRANS_MODE_OFF || ((void)0, gSaveContext.gameMode) != GAMEMODE_NORMAL)) {
+                    timeSpeedStep = Environment_GetTimeSpeedStep();
 
-                    if (IS_DAY || gTimeSpeed >= 400) {
-                        gSaveContext.save.dayTime += gTimeSpeed;
+                    if (IS_DAY || gTimeSpeed >= 400 || gTimeSpeed == ENV_TIME_SPEED_24_MINUTES) {
+                        gSaveContext.save.dayTime += timeSpeedStep;
                     } else {
-                        gSaveContext.save.dayTime += gTimeSpeed * 2; // time moves twice as fast at night
+                        gSaveContext.save.dayTime += timeSpeedStep * 2; // time moves twice as fast at night
                     }
                 }
             }

@@ -363,13 +363,15 @@ BAD_RETURN(s32) Scene_CommandSkyboxDisables(PlayState* play, SceneCmd* cmd) {
 }
 
 BAD_RETURN(s32) Scene_CommandTimeSettings(PlayState* play, SceneCmd* cmd) {
+    u8 timeSpeed = cmd->timeSettings.timeSpeed;
+
     if ((cmd->timeSettings.hour != 0xFF) && (cmd->timeSettings.min != 0xFF)) {
         gSaveContext.skyboxTime = gSaveContext.save.dayTime =
             ((cmd->timeSettings.hour + (cmd->timeSettings.min / 60.0f)) * 60.0f) / ((f32)(24 * 60) / 0x10000);
     }
 
-    if (cmd->timeSettings.timeSpeed != 0xFF) {
-        play->envCtx.sceneTimeSpeed = cmd->timeSettings.timeSpeed;
+    if (timeSpeed != 0xFF) {
+        play->envCtx.sceneTimeSpeed = timeSpeed;
     } else {
         play->envCtx.sceneTimeSpeed = 0;
     }
