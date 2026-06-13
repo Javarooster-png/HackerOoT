@@ -523,6 +523,12 @@ static u32 sNoclipEnabled = false;
 static f32 sControlStickMagnitude = 0.0f;
 static s16 sControlStickAngle = 0;
 static s16 sControlStickWorldYaw = 0;
+
+#if ENABLE_MIRROR_MODE
+#define PLAYER_MIRROR_STICK_X(stickX) (USE_MIRROR_MODE ? -(stickX) : (stickX))
+#else
+#define PLAYER_MIRROR_STICK_X(stickX) (stickX)
+#endif
 static s32 sUpperBodyIsBusy = false; // see `Player_UpdateUpperBody`
 static s32 sFloorType = FLOOR_TYPE_0;
 static f32 sWaterSpeedFactor = 1.0f;    // Set to 0.5f in water, 1.0f otherwise. Influences different speed values.
@@ -9201,7 +9207,7 @@ void Player_Action_80843188(Player* this, PlayState* play) {
         f32 sp40;
 
         sp54 = sControlInput->rel.stick_y * 100;
-        sp50 = sControlInput->rel.stick_x * -120;
+        sp50 = PLAYER_MIRROR_STICK_X(sControlInput->rel.stick_x) * -120;
         sp4E = this->actor.shape.rot.y - Camera_GetInputDirYaw(GET_ACTIVE_CAM(play));
 
         sp40 = Math_CosS(sp4E);
@@ -12471,7 +12477,7 @@ s16 func_8084ABD8(PlayState* play, Player* this, s32 arg2, s16 arg3) {
         temp2 = sControlInput->rel.stick_y * 240.0f;
         Math_SmoothStepToS(&this->actor.focus.rot.x, temp2, 14, 4000, 30);
 
-        temp2 = sControlInput->rel.stick_x * -16.0f;
+        temp2 = PLAYER_MIRROR_STICK_X(sControlInput->rel.stick_x) * -16.0f;
         temp2 = CLAMP(temp2, -3000, 3000);
         this->actor.focus.rot.y += temp2;
     } else {
@@ -12483,8 +12489,8 @@ s16 func_8084ABD8(PlayState* play, Player* this, s32 arg2, s16 arg3) {
 
         temp1 = 19114;
         temp2 = this->actor.focus.rot.y - this->actor.shape.rot.y;
-        temp3 = ((sControlInput->rel.stick_x >= 0) ? 1 : -1) *
-                (s32)((1.0f - Math_CosS(sControlInput->rel.stick_x * 200)) * -1500.0f);
+        temp3 = ((PLAYER_MIRROR_STICK_X(sControlInput->rel.stick_x) >= 0) ? 1 : -1) *
+                (s32)((1.0f - Math_CosS(PLAYER_MIRROR_STICK_X(sControlInput->rel.stick_x) * 200)) * -1500.0f);
         temp2 += temp3;
         this->actor.focus.rot.y = CLAMP(temp2, -temp1, temp1) + this->actor.shape.rot.y;
     }
@@ -12940,7 +12946,7 @@ void Player_Action_8084BF1C(Player* this, PlayState* play) {
     LinkAnimationHeader* anim2;
 
     sp84 = sControlInput->rel.stick_y;
-    sp80 = sControlInput->rel.stick_x;
+    sp80 = PLAYER_MIRROR_STICK_X(sControlInput->rel.stick_x);
 
     this->fallStartHeight = this->actor.world.pos.y;
     this->stateFlags2 |= PLAYER_STATE2_6;

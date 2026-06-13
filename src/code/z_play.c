@@ -1522,13 +1522,28 @@ void Play_Draw(PlayState* this) {
         }
 
 #if IS_MOTION_BLUR_ENABLED
-        Play_DrawMotionBlur(this);
+        if (!USE_MIRROR_MODE) {
+            Play_DrawMotionBlur(this);
+        }
 #endif
 
         if (R_PAUSE_BG_PRERENDER_STATE == PAUSE_BG_PRERENDER_READY) {
             Gfx* gfxP = POLY_OPA_DISP;
 
+            // Keep the captured pause image untouched; restore it normally, then mirror the restored image.
+#if ENABLE_MIRROR_MODE && IS_MOTION_BLUR_ENABLED
+            if (USE_MIRROR_MODE) {
+                PreRender_RestoreFramebuffer(&this->pauseBgPreRender, &gfxP);
+                this->pauseBgPreRender.fbuf = gfxCtx->curFrameBuffer;
+                this->pauseBgPreRender.fbufSave = (u16*)gWorkBuf;
+                PreRender_SaveFramebuffer(&this->pauseBgPreRender, &gfxP);
+                PreRender_MirrorFramebuffer(&this->pauseBgPreRender, &gfxP);
+            } else {
+                PreRender_RestoreFramebuffer(&this->pauseBgPreRender, &gfxP);
+            }
+#else
             PreRender_RestoreFramebuffer(&this->pauseBgPreRender, &gfxP);
+#endif
             POLY_OPA_DISP = gfxP;
 
             goto Play_Draw_DrawOverlayElements;
@@ -1685,6 +1700,22 @@ void Play_Draw(PlayState* this) {
         }
 
     Play_Draw_DrawOverlayElements:
+#if ENABLE_MIRROR_MODE && IS_MOTION_BLUR_ENABLED
+        if (USE_MIRROR_MODE && !IS_PAUSED(&this->pauseCtx)) {
+            Gfx* gfxP;
+
+            gfxP = OVERLAY_DISP;
+            this->pauseBgPreRender.fbuf = gfxCtx->curFrameBuffer;
+            this->pauseBgPreRender.fbufSave = (u16*)gWorkBuf;
+            PreRender_SaveFramebuffer(&this->pauseBgPreRender, &gfxP);
+            PreRender_MirrorFramebuffer(&this->pauseBgPreRender, &gfxP);
+            OVERLAY_DISP = gfxP;
+
+            Actor_DrawTitleLogo(this, &this->actorCtx);
+            Actor_DrawTitleCard(this, &this->actorCtx);
+        }
+#endif
+
 #if ENABLE_F3DEX3
         OcclusionPlane_Draw_Phase(this, OCCLUSION_PLANE_PHASE_POST_3D);
 #endif

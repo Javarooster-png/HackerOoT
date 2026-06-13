@@ -298,7 +298,7 @@ typedef struct SaveContext {
     /* 0x1368 */ RespawnData respawn[RESPAWN_MODE_MAX]; // "restart_data"
     /* 0x13BC */ f32 entranceSpeed;
     /* 0x13C0 */ u16 entranceSound;
-    /* 0x13C2 */ char unk_13C2[0x0001];
+    /* 0x13C2 */ u8 useMirrorMode;
     /* 0x13C3 */ u8 retainWeatherMode;
     /* 0x13C4 */ s16 dogParams;
     /* 0x13C6 */ u8 envHazardTextTriggerFlags;

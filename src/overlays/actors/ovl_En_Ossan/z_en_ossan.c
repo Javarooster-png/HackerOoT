@@ -33,6 +33,12 @@
 #include "assets/objects/object_masterzoora/object_masterzoora.h"
 #include "assets/objects/object_masterkokirihead/object_masterkokirihead.h"
 
+#if ENABLE_MIRROR_MODE
+#define EN_OSSAN_MIRROR_STICK_X(stickX) (USE_MIRROR_MODE ? -(stickX) : (stickX))
+#else
+#define EN_OSSAN_MIRROR_STICK_X(stickX) (stickX)
+#endif
+
 #define FLAGS (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_UPDATE_CULLING_DISABLED)
 
 #if !PLATFORM_GC
@@ -773,7 +779,7 @@ void EnOssan_State_Idle(EnOssan* this, PlayState* play, Player* player) {
 
 void EnOssan_UpdateJoystickInputState(PlayState* play, EnOssan* this) {
     Input* input = &play->state.input[0];
-    s8 stickX = input->rel.stick_x;
+    s8 stickX = EN_OSSAN_MIRROR_STICK_X(input->rel.stick_x);
     s8 stickY = input->rel.stick_y;
 
     this->moveHorizontal = this->moveVertical = false;

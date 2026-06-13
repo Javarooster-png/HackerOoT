@@ -10,6 +10,7 @@
 #include "libc64/math64.h"
 #include "libc64/qrand.h"
 #include "array_count.h"
+#include "config.h"
 #include "controller.h"
 #include "gfx.h"
 #include "gfx_setupdl.h"
@@ -36,6 +37,12 @@
 #include "assets/scenes/overworld/spot09/spot09_scene.h"
 
 #define FLAGS ACTOR_FLAG_UPDATE_CULLING_DISABLED
+
+#if ENABLE_MIRROR_MODE
+#define EN_HORSE_MIRROR_STICK_X(stickX) (USE_MIRROR_MODE ? -(stickX) : (stickX))
+#else
+#define EN_HORSE_MIRROR_STICK_X(stickX) (stickX)
+#endif
 
 typedef void (*EnHorseCsFunc)(EnHorse*, PlayState*, CsCmdActorCue*);
 typedef void (*EnHorseActionFunc)(EnHorse*, PlayState*);
@@ -3065,7 +3072,7 @@ void EnHorse_StickDirection(Vec2f* curStick, f32* stickMag, s16* angle) {
 
 void EnHorse_UpdateStick(EnHorse* this, PlayState* play) {
     this->lastStick = this->curStick;
-    this->curStick.x = play->state.input[0].rel.stick_x;
+    this->curStick.x = EN_HORSE_MIRROR_STICK_X(play->state.input[0].rel.stick_x);
     this->curStick.y = play->state.input[0].rel.stick_y;
 }
 

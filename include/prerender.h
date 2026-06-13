@@ -38,6 +38,7 @@ void PreRender_DrawCoverage(PreRender* this, Gfx** gfxP);
 void PreRender_RestoreZBuffer(PreRender* this, Gfx** gfxP);
 void func_800C213C(PreRender* this, Gfx** gfxP);
 void PreRender_RestoreFramebuffer(PreRender* this, Gfx** gfxP);
+void PreRender_MirrorFramebuffer(PreRender* this, Gfx** gfxP);
 void PreRender_CopyImageRegion(PreRender* this, Gfx** gfxP);
 void PreRender_ApplyFilters(PreRender* this);
 

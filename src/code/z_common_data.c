@@ -34,6 +34,7 @@ void SaveContext_Init(void) {
     gSaveContext.nextTransitionType = TRANS_NEXT_TYPE_DEFAULT;
     gSaveContext.prevHudVisibilityMode = HUD_VISIBILITY_ALL;
     gSaveContext.save.useWidescreen = false;
+    gSaveContext.useMirrorMode = false;
 
 #if OOT_NTSC && OOT_VERSION < GC_US || PLATFORM_IQUE
     if (gCurrentRegion == REGION_JP) {

@@ -133,6 +133,12 @@
     #define USE_WIDESCREEN (ENABLE_WIDESCREEN && gSaveContext.save.useWidescreen == true)
 #endif
 
+#if FORCE_MIRROR_MODE
+    #define USE_MIRROR_MODE true
+#else
+    #define USE_MIRROR_MODE (ENABLE_MIRROR_MODE && gSaveContext.useMirrorMode == true)
+#endif
+
 #if ENABLE_CUTSCENE_IMPROVEMENTS && !ENABLE_NEW_LETTERBOX
     #undef ENABLE_NEW_LETTERBOX
     #define ENABLE_NEW_LETTERBOX true

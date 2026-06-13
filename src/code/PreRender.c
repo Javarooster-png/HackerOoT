@@ -519,6 +519,66 @@ void PreRender_RestoreFramebuffer(PreRender* this, Gfx** gfxP) {
 }
 
 /**
+ * Mirrors fbufSave horizontally into fbuf.
+ */
+void PreRender_MirrorFramebuffer(PreRender* this, Gfx** gfxP) {
+    Gfx* gfx;
+    uObjBg* bg;
+
+    LOG_UTILS_CHECK_NULL_POINTER("this", this, "../PreRender.c", 757);
+    LOG_UTILS_CHECK_NULL_POINTER("glistpp", gfxP, "../PreRender.c", 758);
+    gfx = *gfxP;
+    LOG_UTILS_CHECK_NULL_POINTER("glistp", gfx, "../PreRender.c", 760);
+    LOG_UTILS_CHECK_NULL_POINTER("this->fbuf", this->fbuf, "../PreRender.c", 761);
+    LOG_UTILS_CHECK_NULL_POINTER("this->fbuf_save", this->fbufSave, "../PreRender.c", 762);
+
+    gDPPipeSync(gfx++);
+    gDPSetOtherMode(gfx++,
+                    G_AD_DISABLE | G_CD_DISABLE | G_CK_NONE | G_TC_FILT | G_TF_POINT | G_TT_NONE | G_TL_TILE |
+                        G_TD_CLAMP | G_TP_NONE | G_CYC_1CYCLE | G_PM_NPRIMITIVE,
+                    G_AC_NONE | G_ZS_PRIM | G_RM_OPA_SURF | G_RM_OPA_SURF2);
+    gDPSetCombineLERP(gfx++, 0, 0, 0, TEXEL0, 0, 0, 0, 1, 0, 0, 0, TEXEL0, 0, 0, 0, 1);
+    gDPSetColorImage(gfx++, G_IM_FMT_RGBA, G_IM_SIZ_16b, this->width, this->fbuf);
+    gDPSetScissor(gfx++, G_SC_NON_INTERLACE, 0, 0, this->width, this->height);
+
+    bg = Gfx_Alloc(&gfx, sizeof(uObjBg));
+
+    bg->s.imageX = 0;
+    bg->s.imageW = this->width * 4 + 1;
+    bg->s.frameX = 0;
+
+    bg->s.imageY = 0;
+    bg->s.imageH = this->height * 4 + 1;
+    bg->s.frameY = 0;
+
+    bg->s.imagePtr = (u64*)this->fbufSave;
+    bg->s.imageLoad = G_BGLT_LOADTILE;
+    bg->s.imageFmt = G_IM_FMT_RGBA;
+    bg->s.imageSiz = G_IM_SIZ_16b;
+    bg->s.imagePal = 0;
+    bg->s.imageFlip = G_BG_FLAG_FLIPS;
+
+    bg->s.frameW = this->width * 4;
+    bg->s.frameH = this->height * 4;
+    bg->s.scaleW = 1024;
+    bg->s.scaleH = 1024;
+    bg->s.imageYorig = bg->s.imageY;
+
+    gSPLoadUcodeL(gfx++, gspS2DEX2d_fifo);
+    gDPPipeSync(gfx++);
+
+    gSPObjRenderMode(gfx++, G_OBJRM_ANTIALIAS | G_OBJRM_BILERP);
+    gSPBgRect1Cyc(gfx++, bg);
+    gDPPipeSync(gfx++);
+
+    gSPLoadUcodeEx(gfx++, SysUcode_GetUCode(), SysUcode_GetUCodeData(), 0x800);
+    gDPPipeSync(gfx++);
+
+    gDPSetColorImage(gfx++, G_IM_FMT_RGBA, G_IM_SIZ_16b, this->width, this->fbuf);
+    *gfxP = gfx;
+}
+
+/**
  * Copies part of `this->fbufSave` in the region (this->ulx, this->uly), (this->lrx, this->lry) to the same location in
  * `this->fbuf`.
  */

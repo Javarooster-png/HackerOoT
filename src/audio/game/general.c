@@ -2,9 +2,11 @@
 #include "array_count.h"
 #include "attributes.h"
 #include "audiothread_cmd.h"
+#include "config.h"
 #include "controller.h"
 #include "padmgr.h"
 #include "printf.h"
+#include "save.h"
 #include "seqcmd.h"
 #include "sequence.h"
 #include "sfx.h"
@@ -2648,6 +2650,11 @@ void Audio_SetSfxProperties(u8 bankId, u8 entryIdx, u8 channelIndex) {
             vol = Audio_ComputeSfxVolume(bankId, entryIdx) * *entry->vol;
             reverb = Audio_ComputeSfxReverb(bankId, entryIdx, channelIndex);
             pan = Audio_ComputeSfxPanSigned(*entry->posX, *entry->posZ, entry->token);
+#if ENABLE_MIRROR_MODE
+            if (USE_MIRROR_MODE) {
+                pan = 0x80 - pan;
+            }
+#endif
             freqScale = Audio_ComputeSfxFreqScale(bankId, entryIdx) * *entry->freqScale;
 
             if (sSoundOutputMode == SOUND_OUTPUT_SURROUND) {

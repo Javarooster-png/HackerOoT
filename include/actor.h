@@ -734,6 +734,8 @@ void Actor_InitContext(struct PlayState* play, ActorContext* actorCtx, struct Ac
 void Actor_UpdateAll(struct PlayState* play, ActorContext* actorCtx);
 s32 Actor_CullingVolumeTest(struct PlayState* play, Actor* actor, Vec3f* projPos, f32 projW);
 void Actor_DrawAll(struct PlayState* play, ActorContext* actorCtx);
+void Actor_DrawTitleLogo(struct PlayState* play, ActorContext* actorCtx);
+void Actor_DrawTitleCard(struct PlayState* play, ActorContext* actorCtx);
 void Actor_KillAllWithMissingObject(struct PlayState* play, ActorContext* actorCtx);
 void func_80031B14(struct PlayState* play, ActorContext* actorCtx);
 void func_80031C3C(ActorContext* actorCtx, struct PlayState* play);

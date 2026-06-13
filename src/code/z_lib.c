@@ -1,8 +1,10 @@
 #include "ultra64.h"
+#include "config.h"
 #include "z_lib.h"
 #include "ichain.h"
 #include "printf.h"
 #include "regs.h"
+#include "save.h"
 #include "sys_math.h"
 #include "rand.h"
 #include "sfx.h"
@@ -229,6 +231,12 @@ s32 Math_AsymStepToF(f32* pValue, f32 target, f32 incrStep, f32 decrStep) {
 void Lib_GetControlStickData(f32* outMagnitude, s16* outAngle, Input* input) {
     f32 relX = input->rel.stick_x;
     f32 relY = input->rel.stick_y;
+
+#if ENABLE_MIRROR_MODE
+    if (USE_MIRROR_MODE) {
+        relX = -relX;
+    }
+#endif
 
     *outMagnitude = sqrtf(SQ(relX) + SQ(relY));
     *outMagnitude = (60.0f < *outMagnitude) ? 60.0f : *outMagnitude;

@@ -28,6 +28,12 @@
  * Other graphical settings
 */
 
+// Include support for mirroring the rendered game horizontally.
+#define ENABLE_MIRROR_MODE true
+
+// Force mirror mode regardless of SaveContext.
+#define FORCE_MIRROR_MODE false
+
 // Enable or disable Link's LOD model (the low poly model)
 #define ENABLE_LINK_LOD false
 

@@ -2977,8 +2977,10 @@ void Actor_DrawAll(PlayState* play, ActorContext* actorCtx) {
                     } else {
                         if (!DEBUG_FEATURES || (HREG(64) != 1) || ((HREG(65) != -1) && (HREG(65) != HREG(66))) ||
                             (HREG(72) == 0)) {
-                            Actor_Draw(play, actor);
-                            actor->isDrawn = true;
+                            if (!USE_MIRROR_MODE || (actor->id != ACTOR_EN_MAG)) {
+                                Actor_Draw(play, actor);
+                                actor->isDrawn = true;
+                            }
                         }
                     }
                 }
@@ -3011,7 +3013,7 @@ void Actor_DrawAll(PlayState* play, ActorContext* actorCtx) {
         Lights_DrawGlow(play);
     }
 
-    if (!DEBUG_FEATURES || (HREG(64) != 1) || (HREG(75) != 0)) {
+    if (!USE_MIRROR_MODE && (!DEBUG_FEATURES || (HREG(64) != 1) || (HREG(75) != 0))) {
         TitleCard_Draw(play, &actorCtx->titleCtx);
     }
 
@@ -3022,6 +3024,26 @@ void Actor_DrawAll(PlayState* play, ActorContext* actorCtx) {
 #endif
 
     CLOSE_DISPS(play->state.gfxCtx, "../z_actor.c", 6563);
+}
+
+void Actor_DrawTitleLogo(PlayState* play, ActorContext* actorCtx) {
+    Actor* actor = actorCtx->actorLists[ACTORCAT_PROP].head;
+
+    while (actor != NULL) {
+        if ((actor->id == ACTOR_EN_MAG) && (actor->init == NULL) && (actor->draw != NULL)) {
+            Actor_Draw(play, actor);
+            actor->isDrawn = true;
+            break;
+        }
+
+        actor = actor->next;
+    }
+}
+
+void Actor_DrawTitleCard(PlayState* play, ActorContext* actorCtx) {
+    if (!DEBUG_FEATURES || (HREG(64) != 1) || (HREG(75) != 0)) {
+        TitleCard_Draw(play, &actorCtx->titleCtx);
+    }
 }
 
 /**

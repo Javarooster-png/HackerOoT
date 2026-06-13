@@ -11,6 +11,7 @@
 #include "libc64/math64.h"
 #include "array_count.h"
 #include "attributes.h"
+#include "config.h"
 #include "controller.h"
 #include "gfx.h"
 #include "gfx_setupdl.h"
@@ -42,6 +43,12 @@
                                "ntsc-1.0:128 ntsc-1.1:128 ntsc-1.2:128 pal-1.0:128 pal-1.1:128"
 
 #define FLAGS ACTOR_FLAG_UPDATE_CULLING_DISABLED
+
+#if ENABLE_MIRROR_MODE
+#define FISHING_MIRROR_STICK_X(stickX) (USE_MIRROR_MODE ? -(stickX) : (stickX))
+#else
+#define FISHING_MIRROR_STICK_X(stickX) (stickX)
+#endif
 
 #define WATER_SURFACE_Y(play) play->colCtx.colHeader->waterBoxes->ySurface
 
@@ -2018,7 +2025,9 @@ void Fishing_DrawRod(PlayState* play2) {
     }
 
     if ((sRodCastState == 3) || (sRodCastState == 4)) {
-        if ((input->rel.stick_x == 0) && (sStickAdjXPrev != 0)) {
+        s8 stickX = FISHING_MIRROR_STICK_X(input->rel.stick_x);
+
+        if ((stickX == 0) && (sStickAdjXPrev != 0)) {
             D_80B7A6B0 = 0.0f;
         }
         if ((input->rel.stick_y == 0) && (sStickAdjYPrev != 0)) {
@@ -2030,7 +2039,7 @@ void Fishing_DrawRod(PlayState* play2) {
         lureXZLen = player->unk_85C - lureXZLen;
 
         spC4 = player->unk_858;
-        Math_SmoothStepToF(&player->unk_858, input->rel.stick_x * 0.02f, 0.3f, 5.0f, 0.0f);
+        Math_SmoothStepToF(&player->unk_858, stickX * 0.02f, 0.3f, 5.0f, 0.0f);
         spC4 = player->unk_858 - spC4;
 
         if (player->unk_858 > 1.0f) {
@@ -2440,11 +2449,12 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
             if (lureXZLen < SQ(920.0f)) {
                 if (sLurePos.y <= spE4 + 4) {
                     Input* input2 = &play->state.input[0];
+                    s8 stickX = FISHING_MIRROR_STICK_X(input2->rel.stick_x);
                     f32 wiggle = 0.0f;
 
                     if (D_80B7E150 == 0) {
-                        if (fabsf(input2->rel.stick_x) > 30.0f) {
-                            wiggle = fabsf((input2->rel.stick_x - sStickAdjXPrev) * (1.0f / 60.0f));
+                        if (fabsf(stickX) > 30.0f) {
+                            wiggle = fabsf((stickX - sStickAdjXPrev) * (1.0f / 60.0f));
                         } else if (fabsf(input2->rel.stick_y) > 30.0f) {
                             wiggle = fabsf((input2->rel.stick_y - sStickAdjYPrev) * (1.0f / 60.0f));
                         }
@@ -5850,7 +5860,7 @@ void Fishing_DrawOwner(Actor* thisx, PlayState* play) {
         Fishing_UpdateLine(play2, &sRodTipPos, sReelLinePos, sReelLineRot, sReelLineUnk);
         Fishing_DrawLureAndLine(play2, sReelLinePos, sReelLineRot);
 
-        sStickAdjXPrev = input->rel.stick_x;
+        sStickAdjXPrev = FISHING_MIRROR_STICK_X(input->rel.stick_x);
         sStickAdjYPrev = input->rel.stick_y;
     }
 
