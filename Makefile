@@ -31,7 +31,7 @@ COMPILER ?= gcc
 #   gc-eu-mq       GameCube Europe/PAL Master Quest
 #   gc-jp-ce       GameCube Japan (Collector's Edition disc)
 #   ique-cn        iQue Player (Simplified Chinese)
-VERSION ?= gc-eu-mq-dbg
+VERSION ?= ntsc-1.0
 # Number of threads to extract and compress with.
 N_THREADS ?= $(shell nproc)
 # If DEBUG_OBJECTS is 1, produce additional debugging files such as objdump output or raw binaries for assets
@@ -48,7 +48,7 @@ REGION ?= US
 # Note that by enabling debug features on non-debug ROM versions, some debug ROM specific assets will not be included.
 # This means the debug test scenes and some debug graphics in the elf_msg actors will not work as expected.
 # This may also be used to disable debug features on debug ROMs by setting DEBUG_FEATURES to 0
-DEBUG_FEATURES ?= 1
+DEBUG_FEATURES ?= 0
 # MIPS ABI, can be one of "32", "n32" or "eabi"
 # Note n32 and/or eabi may break some old emulators or emulator versions
 ABI := 32

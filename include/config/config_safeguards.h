@@ -74,6 +74,10 @@
         #define NDEBUG
     #endif
 
+    #if ENABLE_RETAIL_ASSERTS
+        #undef NDEBUG
+    #endif
+
     #if BOOT_ENTRANCE == ENTR_EXAMPLE_0
         #undef BOOT_ENTRANCE
         #define BOOT_ENTRANCE ENTR_HYRULE_FIELD_0
