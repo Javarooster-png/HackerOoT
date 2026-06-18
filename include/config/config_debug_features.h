@@ -29,6 +29,11 @@
 // ``IS_NO_CLIP_ENABLED``
 #define ENABLE_NO_CLIP true
 
+/**** [P2 FREE CAM] ****/
+// ``IS_P2_FREE_CAM_ENABLED``
+// Allows controller 2's stick to rotate the active gameplay camera. Z-targeting resets it.
+#define ENABLE_P2_FREE_CAM true
+
 /**** [INPUT DISPLAY] ****/
 // ``CAN_SHOW_INPUT_DISPLAY``
 #define SHOW_INPUT_DISPLAY false
