@@ -57,6 +57,13 @@ OSTime sGraphPrevTaskTimeStart;
 u16 (*gWorkBuf)[SCREEN_WIDTH * SCREEN_HEIGHT]; // pointer-to-array, array itself is allocated (see below)
 #endif
 
+static void Graph_UpdateMirrorModeToggle(GameState* gameState) {
+    if (ENABLE_MIRROR_MODE && CHECK_BTN_ALL(gameState->input[0].cur.button, BTN_R | BTN_Z) &&
+        CHECK_BTN_ALL(gameState->input[0].press.button, BTN_DLEFT)) {
+        gSaveContext.useMirrorMode ^= 1;
+    }
+}
+
 #if DEBUG_FEATURES
 FaultClient sGraphFaultClient;
 
@@ -340,6 +347,7 @@ void Graph_Update(GraphicsContext* gfxCtx, GameState* gameState) {
 #endif
 
     GameState_ReqPadData(gameState);
+    Graph_UpdateMirrorModeToggle(gameState);
     GameState_Update(gameState);
 
 #if DEBUG_FEATURES
@@ -474,24 +482,6 @@ void Graph_Update(GraphicsContext* gfxCtx, GameState* gameState) {
         gSaveContext.save.useWidescreen ^= 1;
     }
 
-    if (ENABLE_MIRROR_MODE && CHECK_BTN_ALL(gameState->input[0].press.button, BTN_DLEFT) &&
-        CHECK_BTN_ALL(gameState->input[0].cur.button, BTN_Z | BTN_R)) {
-        if (gameState->init != Play_Init) {
-            gSaveContext.useMirrorMode ^= 1;
-        } else {
-            PlayState* play = (PlayState*)gameState;
-            s32 canToggleMirrorMode =
-                (play->pauseCtx.state == PAUSE_STATE_OFF) && (R_PAUSE_BG_PRERENDER_STATE == PAUSE_BG_PRERENDER_OFF);
-
-#if IS_INV_EDITOR_ENABLED || IS_EVENT_EDITOR_ENABLED
-            canToggleMirrorMode = canToggleMirrorMode && (play->pauseCtx.debugState == PAUSE_DEBUG_STATE_CLOSED);
-#endif
-
-            if (canToggleMirrorMode) {
-                gSaveContext.useMirrorMode ^= 1;
-            }
-        }
-    }
 }
 
 #if ENABLE_UNF
