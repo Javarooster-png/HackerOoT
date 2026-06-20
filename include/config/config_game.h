@@ -9,9 +9,6 @@
 // Fix annoying glitches (crashes and softlocks)
 #define FIX_ANNOYING_GLITCH true
 
-// Temporary test: keep runtime assert branches in retail builds.
-#define ENABLE_RETAIL_ASSERTS true
-
 // Add a fix for the Stale Reference Manipulation glitch (OoT's Pandora's Box)
 #define FIX_SRM true
 
